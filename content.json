@@ -1,0 +1,4 @@
+[
+    {"type":"text", "name":"first_name","label":"First Name", "value":"Dean"},
+    {"type":"text", "name":"last_name","label":"Last Name", "value":"McPherson"}
+]
