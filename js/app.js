@@ -1,32 +1,44 @@
 var app = angular.module('myApp', []);
+var form = {};
 
 app.directive('formItem', function ($compile) {
   
 	var templates = {
 		chromeStart:'',
 		chromeEnd:'',
-		text: '<label for="{{content.name}}">{{content.label}}</label><input type="text" name="{{content.name}}" ng-init="applyModels()"/>'
+		text: function(content){return '<label for="{{content.name}}">{{content.label}}</label>l'; }
 	}
 
-    var getTemplate = function(type) {
+    var getTemplate = function(content) {
 		var tmp = '';
 		if (templates.chromeStart != undefined){ tmp += templates.chromeStart; }
-		tmp += templates[type];
+		tmp += templates[content.type](content);
 		if (templates.chromeEnd != undefined){ tmp += templates.chromeEnd; }
         return tmp;
     }
 
     var linker = function(scope, element, attrs) {
-        element.html(getTemplate(scope.content.type)).show();
-        $compile(element.contents())(scope);
+		var html = 'sad';
+		console.log(form);
+		/*for( var form in form ){	
+		
+		return;
+			html += getTemplate(scope.form[item]);
+		}*/
+		element.html(html).show();
+		$compile(element.contents())(scope);
     }
 
     return {
         restrict: "E",
         rep1ace: true,
+		transclude: true,
         link: linker,
+		controller: function($scope){
+		form.currentForm = $scope.form;
+		},
         scope: {
-            content:'='
+            form:'=ngModel',
         }
     };
 });
@@ -38,16 +50,17 @@ function FormCtrl($scope, $http) {
 
     $scope.fetchData = function() {
         $http.get($scope.url).then(function(result){
-            $scope.formSchema = result.data;
+		form.currentForm = result.data;
+		$scope.formSchema = result.data;
+		/*var newData = {};
+		for ( var x in result.data ) {
+			newData[result.data[x]['name']] = result.data[x]['value'];
+		}
+		$scope.data = newData;*/
         });
     }
 	$scope.serialize = function(){
-	$scope.applyModels();
 		console.log($scope);
-	}
-	$scope.applyModels = function(){
-		
-		console.log('Apply!');
 	}
     $scope.fetchData();
 }
