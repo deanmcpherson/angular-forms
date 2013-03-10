@@ -6,7 +6,19 @@ app.directive('formItem', function ($compile) {
 	var templates = {
 		chromeStart:'',
 		chromeEnd:'',
-		text: function(content){return '<label for="{{content.name}}">{{content.label}}</label><input type="text" name="{{content.name}}" ng-model="content.value" />'; }
+		text: function(content){return '<label for="{{content.name}}">{{content.label}}</label><input type="text" name="{{content.name}}" ng-model="content.value" />'; },
+		select: function(content){return '<label for="{{content.name}}">{{content.label}}</label><select name="{{content.name}}" ng-model="content.value" ng-options="i.v as i.k for i in content.values"/>'; },
+		subform: function(content){ var base = '<subform name="{{content.name}}"><form-item ng-repeat="item in content.fields" content="item"></form-item></subform>';
+			if(content.repeat != undefined) {
+				var result = '';
+				for ( var x = 0; x < content.repeat; x++){
+					result += base;
+				}
+				return result;
+			} else {
+				return base;
+			}
+		}
 	}
 
     var getTemplate = function(content) {
@@ -42,23 +54,16 @@ app.directive('formItem', function ($compile) {
 
 function FormCtrl($scope, $http) {
     "use strict";
-
     $scope.url = 'content.json';
-
-    $scope.fetchData = function() {
+    $scope.update = function() {
         $http.get($scope.url).then(function(result){
-		form.currentForm = result.data;
-		$scope.formSchema = result.data;
-		/*var newData = {};
-		for ( var x in result.data ) {
-			newData[result.data[x]['name']] = result.data[x]['value'];
-		}
-		$scope.data = newData;*/
+		form.currentForm = $scope;
+		$scope.data = result.data;
         });
     }
 	$scope.serialize = function(){
 		console.log($scope);
 	}
-    $scope.fetchData();
+    $scope.update();
 }
 
