@@ -6,7 +6,7 @@ app.directive('formItem', function ($compile) {
 	var templates = {
 		chromeStart:'',
 		chromeEnd:'',
-		text: function(content){return '<label for="{{content.name}}">{{content.label}}</label>l'; }
+		text: function(content){return '<label for="{{content.name}}">{{content.label}}</label><input type="text" name="{{content.name}}" ng-model="content.value" />'; }
 	}
 
     var getTemplate = function(content) {
@@ -18,13 +18,11 @@ app.directive('formItem', function ($compile) {
     }
 
     var linker = function(scope, element, attrs) {
-		var html = 'sad';
-		console.log(form);
-		/*for( var form in form ){	
+		var html = '';
+		console.log(scope.content);
+	
+			html += getTemplate(scope.content	);
 		
-		return;
-			html += getTemplate(scope.form[item]);
-		}*/
 		element.html(html).show();
 		$compile(element.contents())(scope);
     }
@@ -35,10 +33,9 @@ app.directive('formItem', function ($compile) {
 		transclude: true,
         link: linker,
 		controller: function($scope){
-		form.currentForm = $scope.form;
 		},
         scope: {
-            form:'=ngModel',
+            content:'=',
         }
     };
 });
