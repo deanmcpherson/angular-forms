@@ -1,5 +1,21 @@
 var app = angular.module('myApp', ["google-maps"]);
-var form = {};
+var form = {},
+settings = {};
+settings.geo = {};
+
+settings.geo.refresh = function(ref){
+	var g = this;
+	if (navigator.geolocation){
+		navigator.geolocation.getCurrentPosition(function(geo){
+		g.center = {lat:geo.coords.latitude, lng: geo.coords.longitude};
+		if (ref != undefined){ ref = g.center; }
+		});
+	}
+};
+
+settings.geo.refresh();
+settings.geo.center = {lat:0, lng:0};
+settings.geo.zoom = 15;
 
 app.directive('formItem', function ($compile) {
   
@@ -16,6 +32,12 @@ app.directive('formItem', function ($compile) {
 			<button ng-click="removeField(content)">Remove</button></div>\
 			<button ng-show="content.hidden" ng-click="showField(content)">Add {{content.label}}</button>';
 			return base;
+		},
+		map: function(content, refesh){
+			if ( !content.center ){ content.center = settings.geo.center; settings.geo.refresh(content.center); }
+			if ( !content.zoom ){ content.zoom = settings.geo.zoom; }
+			if ( !content.markers ){ content.markers = []; }
+			return '<label for="{{content.name}}">{{content.label}}</label><input type="number" name="lng" ng-model="content.longitude"><br /><input name="lat" type="number" ng-model="content.latitude"><br /><google-map center="content.center" latitude="content.latitude" longitude="content.longitude" draggable="true" zoom="content.zoom" mark-click="false" markers="content.markers"></google-map>';
 		}
 	}
 
@@ -29,7 +51,7 @@ app.directive('formItem', function ($compile) {
 
     var linker = function(scope, element, attrs) {
 		var html = '';
-		html += getTemplate(scope.content);	
+		html += getTemplate(scope.content);
 		element.html(html).show();
 		$compile(element.contents())(scope);
     }
@@ -40,6 +62,24 @@ app.directive('formItem', function ($compile) {
 		transclude: true,
         link: linker,
 		controller: function($scope) {
+				$scope.refresh = function() {
+					var content = this.content;
+					navigator.geolocation.getCurrentPosition(function(geo){
+					content.center = {lat:geo.coords.latitude, lng: geo.coords.longitude};
+					content.markers =[{latitude:geo.coords.latitude, longitude: geo.coords.longitude}];
+					content.latitude = geo.coords.latitude;
+					content.longitude = geo.coords.longitude;
+					$scope.$apply();
+					});
+				}
+
+				if ($scope.content.type == 'map'){
+					$scope.refresh();
+				}
+
+				$scope.dump = function(){
+					console.log(this.content);
+				}
 
 				$scope.showField = function(content){
 					content.hidden = false;
@@ -129,6 +169,16 @@ app.directive('formItem', function ($compile) {
 
 function FormCtrl($scope, $http) {
     "use strict";
+
+    angular.extend($scope, {
+		center: {
+			lat: 0, // initial map center latitude
+			lng: 0, // initial map center longitude
+		},
+		markers: [], // an array of markers,
+		zoom: 8, // the zoom level
+	});
+
     $scope.url = 'content.json';
     $scope.update = function() {
 

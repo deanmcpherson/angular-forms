@@ -149,3 +149,9 @@ body {
 form-item {
 display: block;
 }
+
+google-map {
+    display: block;
+    width:100%;
+    min-height:300px;
+}

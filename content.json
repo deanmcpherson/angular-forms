@@ -1,4 +1,9 @@
 [{
+	"type":"map",
+	"name":"map",
+	"label":"location"	
+},
+{
 	"type": "subform",
 	"name": "new",
 	"label": "New",
