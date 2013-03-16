@@ -6,15 +6,20 @@
     <script type="text/javascript" src="js/jquery.min.js"></script>
     <script type="text/javascript" src="js/angular.min.js"></script>
     <script type="text/javascript" src="js/app.js"></script>
-
+    <script type="text/javascript" src="js/fastclick.js"></script>
     <link rel="stylesheet" href="css/layout.css">
 </head>
 <body>
 
 <div id="container" ng-controller="FormCtrl">
-	<button ng-click="serialize($event)"></button>
+	<button ng-click="add()"></button>
     <form-item ng-repeat="item in data" content="item"></form-item>
 </div>
 
 </body>
+<footer><script type="text/javascript">
+window.addEventListener('load', function() {
+    new FastClick(document.body);
+}, false);
+</script></footer>	
 </html>
