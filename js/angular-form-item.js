@@ -163,20 +163,10 @@
 	var formaModule =angular.module("forma", ["form-items"]);
 	formaModule.directive('forma', function ($compile) {
 	  
-	
-	    var getTemplate = function(content) {
-			var tmp = '';
-			if (templates.chromeStart != undefined){ tmp += templates.chromeStart; }
-			tmp += templates[content.type](content);
-			if (templates.chromeEnd != undefined){ tmp += templates.chromeEnd; }
-	        return tmp;
-	    }
-
 	    var linker = function(scope, element, attrs) {
-			var html = '<form-item ng-repeat="item in '+ scope.model+'" content="item"></form-item>';
-			html += getTemplate(scope.model);
+			var html = '<form-item ng-repeat="item in model" content="item"></form-item>';
+			//html += getTemplate(scope.model);
 			element.html(html).show();
-
 			$compile(element.contents())(scope);
 	    }
 
