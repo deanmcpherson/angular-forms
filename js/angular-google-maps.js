@@ -238,7 +238,14 @@
         // Return marker instance
         return marker;
       };      
-      
+
+      this.reCenter = function(){
+        this.draw();
+        if (_markers[0] != undefined){
+         _instance.panTo(_markers[0].getPosition());
+        }
+      }
+
       this.findMarker = function (lat, lng) {
         for (var i = 0; i < _markers.length; i++) {
           var pos = _markers[i].getPosition();
@@ -459,7 +466,16 @@
         
         // Put the map into the scope
         scope.map = _m;
+        $(document).one('pageshow', function(){ _m.reCenter(); });
         
+        (function() {
+          var resizing = false;
+          $(window).resize(function(){ if (!resizing) {
+            resizing = true;
+            setTimeout(function(){ _m.reCenter(); resizing = false;}, 300);
+         }
+        });
+      }());
         // Check if we need to refresh the map
         if (angular.isUndefined(scope.refresh())) {
           // No refresh property given; draw the map immediately
