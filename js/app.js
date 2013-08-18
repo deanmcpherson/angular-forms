@@ -50,7 +50,7 @@ function FormCtrl($scope, $http) {
 						}
 					} else {
 						if (!is_sub){
-							data[x]['hidden'] = true;
+							data[x]['collapsed'] = true;
 						}
 					}		
 					return data;
@@ -65,10 +65,28 @@ function FormCtrl($scope, $http) {
 			$scope.data = data;
         });
     }
-	$scope.add = function(){
 
+	 var serializeForm = function(data) {
+		return data.map(function(item){
+			if (item.type === 'subform') {
+				return {k: item.name, v: serializeForm(item.fields)};
+			}
+			else
+			{
+				return {k: item.name, v: item.value};
+			}
+		});
 	}
 
+	$scope.submitUrl = '/test';
+	$scope.submit = function() {
+		var data = JSON.stringify(serializeForm($scope.data));
+		$http.post($scope.submitUrl, data).then(function(){
+			alert('result!');
+		}); 
+	}
+
+	window.scope = $scope;
     $scope.update();
 }
 

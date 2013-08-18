@@ -1,7 +1,22 @@
 [{
-	"type":"map",
-	"name":"map",
-	"label":"location"	
+	"type":"checkboxes",
+	"name":"rad",
+	"label":"Radio",
+	"options":[{"k":"test", "v":"test4"}, {"k":"test2", "v":"test3"}],
+	"value":["test4"]
+},
+{
+	"type":"checkbox",
+	"name":"c",
+	"label":"check",
+	"value":true
+},
+{
+"type":"multiselect",
+"name":"c",
+"label":"select",
+"values":[{"v":"test", "k":"test2"}, {"v":"test3", "k":"test4"}],
+"value":["test", "test3"]
 },
 {
 	"type": "subform",

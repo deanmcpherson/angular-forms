@@ -1,22 +1,56 @@
 (function(){
 	var formItemModule =angular.module("form-items", ["google-maps"]);
-	formItemModule.directive('formItem', function ($compile) {
+	formItemModule
+	.directive('formItemCheckboxes', function () {
+		return {			
+			controller: function ($scope, $element, $attrs) {
+				var vals = {};
+				$scope.content.value.forEach(function(val) {
+					vals[val] = true;
+				});
+				$scope.content._tmp = vals;
+
+				$scope.$watch('content._tmp', function(){
+					var vals = [], x, tmp;
+					tmp = $scope.content._tmp;
+					for (x in tmp) {
+						if (tmp.hasOwnProperty(x) && tmp[x]) {
+							vals.push(x);
+						}
+					}
+					$scope.content.value = vals;
+				}, true);
+			}
+		}
+	})
+	.directive('formItem', function ($compile) {
 	  
 		var templates = {
 			chromeStart:'',
 			chromeEnd:'',
 			text: function(content){return '<label for="{{content.name}}">{{content.label}}</label><input type="text" name="{{content.name}}" ng-model="content.value" />'; },
 			select: function(content){return '<label for="{{content.name}}">{{content.label}}</label><select name="{{content.name}}" ng-model="content.value" ng-options="i.v as i.k for i in content.values"/>'; },
+			multiselect: function(content){return '<label for="{{content.name}}">{{content.label}}</label><select multiple="multiple" name="{{content.name}}" ng-model="content.value" ng-options="i.v as i.k for i in content.values"/>'; },
 			subform: function(content){ 
-				var base = '<div type="subform" name="{{content.name}}" ng-hide="content.hidden" style="margin:15px; border: 1px solid red; display:block;">\
+				return '<div type="subform" name="{{content.name}}" ng-hide="content.collapsed" style="margin:15px; border: 1px solid red; display:block;">\
 				<h1>{{content.name}}</h1>\
 				<form-item ng-repeat="item in content.fields" content="item"></form-item>\
-				<button ng-click="addField(content)">Add</button>\
-				<button ng-click="removeField(content)">Remove</button></div>\
-				<span ng-hide="!content.hidden" ><button ng-click="showField(content)">Add {{content.label}}</button></span>';
-				return base;
+				<button ng-click="addSubForm()">Add</button>\
+				<button ng-click="removeSubForm($index)">Remove</button></div>\
+				<span ng-hide="!content.collapsed" ><button ng-click="content.collapsed = false">Add {{content.label}}</button></span>';
 			},
-			map: function(content, refesh){
+			radio: function(content) {
+		
+				return '<label for="{{content.name}}">{{content.label}}</label><div ng-repeat="(k, v) in content.options"><label for="{{k}}" >{{k}}</label><input type="radio" name="{{k}}" ng-model="content.value" value="{{v}}" /></div>';
+			},
+			checkboxes: function(content) {
+				return '<label for="{{content.name}}">{{content.label}}</label><div form-item-checkboxes="content._tmp" ng-model="content.value">\
+					<span ng-repeat="i in content.options"><label for="{{i.v}}">{{i.k}}</label><input type="checkbox" name="{{i.v}}" ng-model="content._tmp[i.v]" /></span></div>';
+				},
+			checkbox: function(content) {
+				return '<label for="{{content.name}}">{{content.label}}</label><input type="checkbox" name="{{content.name}}" ng-model="content.value" ng-true-value="{{content.name}}" />';
+			},
+			map: function(content){
 				if ( !content.center ){ content.center = settings.geo.center; settings.geo.refresh(content.center); }
 				if ( !content.zoom ){ content.zoom = settings.geo.zoom; }
 				if ( !content.markers ){ content.markers = []; }
@@ -24,7 +58,7 @@
 				<input type="number" name="lng" ng-model="content.longitude">\
 				<br /><input name="lat" type="number" ng-model="content.latitude"><br />\
 				<google-map center="content.center" latitude="content.latitude" longitude="content.longitude" draggable="true" zoom="content.zoom"  markers="content.markers"></google-map>';
-			}
+			},
 		}
 
 	    var getTemplate = function(content) {
@@ -36,8 +70,8 @@
 	    }
 
 	    var linker = function(scope, element, attrs) {
-			var html = '';
-			html += getTemplate(scope.content);
+	
+			var html = getTemplate(scope.content);
 			element.html(html).show();
 
 			$compile(element.contents())(scope);
@@ -49,10 +83,7 @@
 			transclude: true,
 	        link: linker,
 			controller: function($scope) {
-					$scope.blah = function(name){
-						console.log(name);
-					}
-
+			
 					$scope.refresh = function() {
 						var content = this.content;
 						navigator.geolocation.getCurrentPosition(function(geo){
@@ -68,13 +99,10 @@
 						$scope.refresh();
 					}
 
-					$scope.dump = function(){
-						console.log(this.content);
-					}
-
 					$scope.showField = function(content){
 						content.hidden = false;
 					}
+
 					$scope.hideField = function(content){
 						content.hidden = true;
 					}
@@ -160,14 +188,28 @@
 }());
 
 (function(){
-	var formaModule =angular.module("forma", ["form-items"]);
+	var formaModule = angular.module("forma", ["form-items"]);
 	formaModule.directive('forma', function ($compile) {
 	  
 	    var linker = function(scope, element, attrs) {
-			var html = '<form-item ng-repeat="item in model" content="item"></form-item>';
+			var html = '<form-item ng-repeat="item in model" content="item" ng-hide="content.hidden"></form-item>';
 			//html += getTemplate(scope.model);
 			element.html(html).show();
 			$compile(element.contents())(scope);
+	    }
+
+	    var ctrl = function ($scope, $element, $attrs) {
+	    	$scope.serializeForm = function(data) {
+			return data.map(function(item){
+				if (item.type === 'subform') {
+					return {k: item.name, v: serializeForm(item.fields)};
+				}
+				else
+				{
+					return {k: item.name, v: item.value};
+				}
+			});
+		}
 	    }
 
 	    return {
@@ -175,6 +217,7 @@
 	        rep1ace: true,
 			transclude: true,
 	        link: linker,
+	        controller: ctrl,
 	        scope: {
 	            model:'=',
 	        }
